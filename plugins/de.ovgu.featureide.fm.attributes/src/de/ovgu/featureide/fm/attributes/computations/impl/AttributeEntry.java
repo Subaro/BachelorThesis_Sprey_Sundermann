@@ -53,13 +53,14 @@ public class AttributeEntry implements IOutlineEntry {
 		children.add(new CountAttributeComputation(config, attribute));
 		EstimatedMinimumComputation min = new EstimatedMinimumComputation(config, attribute);
 		EstimatedMaximumComputation max = new EstimatedMaximumComputation(config, attribute);
+		SmtMaximumComputation smtMax = new SmtMaximumComputation(config, attribute);
 		if (min.supportsType(null)) {
 			children.add(min);
 		}
 		if (max.supportsType(null)) {
 			children.add(max);
+			children.add(smtMax);
 		}
-
 		return children;
 	}
 
