@@ -99,11 +99,13 @@ public class SmtMaximumComputation implements IOutlineEntry {
 
 	}
 
-	// TODO Config cnf ?
 	private Node buildFormula() {
 		Node formula = config.getFeatureModel().getAnalyser().getCnf();
 		for (IFeature feat : config.getSelectedFeatures()) {
 			formula = new And(formula, new Literal(feat.getName()));
+		}
+		for (IFeature feat : config.getUnSelectedFeatures()) {
+			formula = new And(formula, new Literal(new Not(feat.getName())));
 		}
 
 		for (IFeature feat : config.getFeatureModel().getFeatures()) {
