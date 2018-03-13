@@ -51,6 +51,10 @@ public class SmtMaximumComputation implements IOutlineEntry {
 	@Override
 	public String getLabel() {
 		Object[] result = getSelectionSum();
+		if (attribute instanceof LongFeatureAttribute) {
+			result[0] = ((Double) result[0]).longValue();
+			result[1] = ((Double) result[1]).longValue();
+		}
 		return LABEL + result[0].toString() + "-" + result[1].toString();
 	}
 
@@ -105,7 +109,7 @@ public class SmtMaximumComputation implements IOutlineEntry {
 			formula = new And(formula, new Literal(feat.getName()));
 		}
 		for (IFeature feat : config.getUnSelectedFeatures()) {
-			formula = new And(formula, new Literal(new Not(feat.getName())));
+			formula = new And(formula, new Not(feat.getName()));
 		}
 
 		for (IFeature feat : config.getFeatureModel().getFeatures()) {

@@ -23,6 +23,7 @@ package org.prop4j.analyses.impl;
 import org.prop4j.analyses.AbstractSmtSolverAnalysis;
 import org.prop4j.solver.IOptimizationSolver;
 import org.prop4j.solver.ISmtSolver;
+import org.sosy_lab.common.rationals.Rational;
 
 import de.ovgu.featureide.fm.core.job.monitor.IMonitor;
 
@@ -54,7 +55,10 @@ public class FeatureAttributeRangeAnalysis extends AbstractSmtSolverAnalysis<Obj
 		getSolver().findSolution();
 		result[0] = solver.minimum(variable);
 		result[1] = solver.maximum(variable);
-		solver.minAndMax(variable);
+		if (result[0] instanceof Rational) {
+			result[0] = ((Rational) result[0]).doubleValue();
+			result[1] = ((Rational) result[1]).doubleValue();
+		}
 
 		return result;
 	}
