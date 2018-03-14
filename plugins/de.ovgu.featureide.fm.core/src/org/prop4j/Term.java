@@ -36,4 +36,14 @@ public abstract class Term {
 	public Object getValue() {
 		return var;
 	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int hashCode = "terminus".hashCode() * 24;
+		return hashCode;
+	}
 }

@@ -17,7 +17,7 @@ import org.prop4j.Not;
 import org.prop4j.Term;
 import org.prop4j.Variable;
 import org.prop4j.analyses.AbstractSolverAnalysisFactory;
-import org.prop4j.analyses.impl.FeatureAttributeRangeAnalysis;
+import org.prop4j.analyses.impl.smt.FeatureAttributeRangeAnalysis;
 import org.prop4j.solver.impl.SmtProblem;
 import org.prop4j.solvers.impl.javasmt.smt.JavaSmtSolver;
 import org.sosy_lab.java_smt.SolverContextFactory.Solvers;

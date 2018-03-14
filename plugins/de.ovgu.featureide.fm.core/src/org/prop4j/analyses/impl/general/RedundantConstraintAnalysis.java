@@ -21,6 +21,8 @@
 package org.prop4j.analyses.impl.general;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,16 +38,14 @@ import org.prop4j.solver.ISolver;
 import org.prop4j.solver.impl.SatProblem;
 
 import de.ovgu.featureide.fm.core.ConstraintAttribute;
-import de.ovgu.featureide.fm.core.FMCorePlugin;
 import de.ovgu.featureide.fm.core.base.IConstraint;
 import de.ovgu.featureide.fm.core.job.LongRunningWrapper;
 import de.ovgu.featureide.fm.core.job.monitor.IMonitor;
 import de.ovgu.featureide.fm.core.job.monitor.NullMonitor;
 
 /**
- * Finds core and dead features.
+ * Finds redundant constraints.
  *
- * @author Sebastian Krieter
  * @author Joshua Sprey
  */
 public class RedundantConstraintAnalysis extends GeneralSolverAnalysis<Map<IConstraint, ConstraintAttribute>> {
@@ -64,38 +64,70 @@ public class RedundantConstraintAnalysis extends GeneralSolverAnalysis<Map<ICons
 			return new HashMap<>();
 		}
 		final Map<IConstraint, ConstraintAttribute> map = new HashMap<>();
-
 		final List<Node> cnfNodes = new ArrayList<>();
-		for (final IConstraint constraint : constraints) {
-			final Node cnf = constraint.getNode().toRegularCNF();
+		final List<IConstraint> constraintsLocal = new ArrayList<>(3);
+		for (final IConstraint iConstraint : constraints) {
+			constraintsLocal.add(iConstraint);
+		}
+
+		// Sort the constraint by the length of their children
+		Collections.sort(constraintsLocal, new Comparator<IConstraint>() {
+			@Override
+			public int compare(IConstraint o1, IConstraint o2) {
+				final int o1Childs = o1.getNode().toRegularCNF().getChildren().length;
+				final int o2Childs = o2.getNode().toRegularCNF().getChildren().length;
+				if (o1Childs == o2Childs) {
+					return 0;
+				} else if (o1Childs > o2Childs) {
+					return -1;
+				} else {
+					return 1;
+				}
+			}
+		});
+
+		for (int i = 0; i < constraintsLocal.size(); i++) {
+			final Node cnf = constraintsLocal.get(i).getNode().toRegularCNF();
 			cnfNodes.add(cnf);
+			try {
+				solver.push(cnf.getChildren());
+			} catch (final ContradictionException e) {}
 		}
 		monitor.checkCancel();
 
-		int i = -1;
-		for (final IConstraint constraint : constraints) {
-			i++;
+		for (int j = constraintsLocal.size() - 1; j >= 0; j--) {
+			final IConstraint constraint = constraintsLocal.get(j);
 			boolean redundant = true;
-			boolean removedAtLeastOne = false;
-			for (final Node cm : cnfNodes.get(i).getChildren()) {
-				if (cm != null) {
-					removedAtLeastOne = true;
+
+			// Pop all constraints, which are not redundant, until we reach the constraint that should be checked for redundancy (also remove that one)
+			for (int i = constraintsLocal.size() - 1; i >= 0; i--) {
+				if (i >= j) {
+					final IConstraint constraintStack = constraintsLocal.get(i);
+					// Pop all non redundant constraints till we reach our constraint
+					if (map.get(constraintStack) != ConstraintAttribute.REDUNDANT) {
+						solver.pop(cnfNodes.get(i).getChildren().length);
+					}
 				}
 			}
-			if (removedAtLeastOne) {
-				final Node constraintNode = cnfNodes.get(i);
 
-				final Node[] clauses = constraintNode.getChildren();
-				for (int j = 0; j < clauses.length; j++) {
-					if (!isImplied(clauses[j].getChildren())) {
-						redundant = false;
+			// Push all constraints which where popped before except the redundant ones
+			for (int i = 0; i < constraintsLocal.size(); i++) {
+				if (i > j) {
+					final IConstraint constraintStack = constraintsLocal.get(i);
+					if (map.get(constraintStack) != ConstraintAttribute.REDUNDANT) {
 						try {
-							solver.push(constraintNode);
-						} catch (final ContradictionException e) {
-							FMCorePlugin.getDefault().logError(e);
-						}
-						break;
+							solver.push(cnfNodes.get(i).getChildren());
+						} catch (final ContradictionException e) {}
 					}
+				}
+			}
+
+			final Node constraintNode = cnfNodes.get(j);
+			final Node[] clauses = constraintNode.getChildren();
+			for (final Node clause : clauses) {
+				if (!isImplied(clause.getChildren())) {
+					redundant = false;
+					break;
 				}
 			}
 
@@ -106,6 +138,7 @@ public class RedundantConstraintAnalysis extends GeneralSolverAnalysis<Map<ICons
 					map.put(constraint, ConstraintAttribute.REDUNDANT);
 				}
 			}
+
 			monitor.checkCancel();
 		}
 		return map;
@@ -119,24 +152,25 @@ public class RedundantConstraintAnalysis extends GeneralSolverAnalysis<Map<ICons
 		this.constraints = constraints;
 	}
 
-	public boolean isImplied(Node... or) {
-		// Add the variables ass assumptions
-		for (int i = 0; i < or.length; i++) {
-			final Literal node = (Literal) or[i];
+	public boolean isImplied(Node... literals) {
+		for (int i = 0; i < literals.length; i++) {
 			try {
-				solver.push(node);
+				final Literal literal = (Literal) literals[i];
+				// Assume the negated variables of the clause
+				solver.push(new Literal(literal.var, !literal.positive));
 			} catch (final ContradictionException e) {
-				FMCorePlugin.getDefault().logError(e);
+				solver.pop(i);
+				return false;
 			}
 		}
 		switch (solver.isSatisfiable()) {
 		case FALSE:
-			solver.pop(or.length);	// Removes the pushed assumptions
+			solver.pop(literals.length);	// Removes the pushed assumptions
 			return true;
 		case TIMEOUT:
 		case TRUE:
 		default:
-			solver.pop(or.length); // Removes the pushed assumptions
+			solver.pop(literals.length); // Removes the pushed assumptions
 			return false;
 		}
 	}

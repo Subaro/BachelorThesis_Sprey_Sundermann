@@ -21,10 +21,10 @@
 package org.prop4j.solver.impl.sat4j;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.Stack;
 
 import org.prop4j.Literal;
 import org.prop4j.Node;
@@ -48,8 +48,6 @@ import org.sat4j.specs.IConstr;
 import org.sat4j.specs.ISolver;
 import org.sat4j.specs.TimeoutException;
 
-import de.ovgu.featureide.fm.core.FMCorePlugin;
-
 /**
  *
  * @author Joshua Sprey
@@ -63,7 +61,7 @@ public class Sat4jSatSolver extends AbstractSatSolver {
 	/** The current vector that holds all assumptions. */
 	protected final VecInt assignment = new VecInt();
 	/** Hold information about pushed nodes which can be clauses or assumptions. */
-	protected Stack<Node> pushstack = new Stack<>();
+	protected LinkedList<Node> pushstack = new LinkedList<>();
 	/** the pseudo clause. */
 	protected IConstr pseudoClause;
 	/**
@@ -211,7 +209,6 @@ public class Sat4jSatSolver extends AbstractSatSolver {
 				return ISatResult.FALSE;
 			}
 		} catch (final TimeoutException e) {
-			FMCorePlugin.getDefault().logError(e);
 			return ISatResult.TIMEOUT;
 		}
 	}
@@ -256,11 +253,12 @@ public class Sat4jSatSolver extends AbstractSatSolver {
 	 * @see org.prop4j.solver.ISolver#push(org.prop4j.Node)
 	 */
 	@Override
-	public void push(Node formula) throws org.prop4j.solver.ContradictionException {
+	public int push(Node formula) throws org.prop4j.solver.ContradictionException {
 		if (formula instanceof Literal) {
 			final Literal literal = (Literal) formula;
 			assignment.push(getProblem().getSignedIndexOfVariable(literal));
 			pushstack.push(formula);
+			return 0;
 		} else if (formula instanceof Or) {
 			try {
 				final Node[] children = formula.getChildren();
@@ -271,12 +269,12 @@ public class Sat4jSatSolver extends AbstractSatSolver {
 				}
 				memory.push(formula, solver.addClause(new VecInt(clause)));
 				pushstack.push(formula);
+				return 1;
 			} catch (final ContradictionException e) {
-				FMCorePlugin.getDefault().logError("Cannot push formula \"" + formula + "\" to the solver because it would lead to a contradiction", e);
 				throw new org.prop4j.solver.ContradictionException();
 			}
-
 		}
+		return 0;
 	}
 
 	/*
@@ -284,10 +282,12 @@ public class Sat4jSatSolver extends AbstractSatSolver {
 	 * @see org.prop4j.solver.ISolver#push(org.prop4j.Node[])
 	 */
 	@Override
-	public void push(Node... formulas) throws org.prop4j.solver.ContradictionException {
+	public int push(Node... formulas) throws org.prop4j.solver.ContradictionException {
+		int newClauses = 0;
 		for (int i = 0; i < formulas.length; i++) {
-			push(formulas[i]);
+			newClauses += push(formulas[i]);
 		}
+		return newClauses;
 	}
 
 	/*
@@ -315,6 +315,18 @@ public class Sat4jSatSolver extends AbstractSatSolver {
 		return null;
 	}
 
+	/**
+	 * Returns the native solver.
+	 *
+	 * @return native solver
+	 */
+	public Solver<?> getInternalSolver() {
+		if (solver instanceof Solver<?>) {
+			return (Solver<?>) solver;
+		}
+		return null;
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.prop4j.solver.ISolver#setConfiguration(java.lang.String, java.lang.Object)
@@ -329,23 +341,23 @@ public class Sat4jSatSolver extends AbstractSatSolver {
 			if (value instanceof Integer) {
 				final int timeout = (int) value;
 				solver.setTimeoutMs(timeout);
+				return true;
 			}
-			return true;
 		case CONFIG_VERBOSE:
 			if (value instanceof Boolean) {
 				final boolean verbose = (boolean) value;
 				solver.setVerbose(verbose);
+				return true;
 			}
-			return true;
 		case CONFIG_DB_SIMPLIFICATION_ALLOWED:
 			if (value instanceof Boolean) {
 				final boolean dbSimpiAllowed = (boolean) value;
 				solver.setDBSimplificationAllowed(dbSimpiAllowed);
+				return true;
 			}
-			return true;
 		case CONFIG_SELECTION_STRATEGY:
-			if (value instanceof SatSolverSelectionStrategy) {
-				final SatSolverSelectionStrategy strategy = (SatSolverSelectionStrategy) value;
+			if (value instanceof SelectionStrategy) {
+				final SelectionStrategy strategy = (SelectionStrategy) value;
 				switch (strategy) {
 				case NEGATIVE:
 					if (solver instanceof Solver<?>) {
@@ -376,5 +388,32 @@ public class Sat4jSatSolver extends AbstractSatSolver {
 			break;
 		}
 		return false;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.prop4j.solver.ISolver#getIndexOfClause(org.prop4j.Node)
+	 */
+	@Override
+	public int getIndexOfClause(Node clause) {
+		return memory.getIndexOfNode(clause);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.prop4j.solver.ISolver#getClauseOfIndex(int)
+	 */
+	@Override
+	public Node getClauseOfIndex(int index) {
+		return memory.getNodeOfIndex(index);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.prop4j.solver.ISolver#getClauses()
+	 */
+	@Override
+	public List<Node> getClauses() {
+		return memory.getAllClauses();
 	}
 }

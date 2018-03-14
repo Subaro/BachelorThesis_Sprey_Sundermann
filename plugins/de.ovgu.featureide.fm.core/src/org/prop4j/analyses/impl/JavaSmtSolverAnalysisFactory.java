@@ -24,12 +24,15 @@ import java.util.HashMap;
 
 import org.prop4j.analyses.AbstractSolverAnalysisFactory;
 import org.prop4j.analyses.ISolverAnalysis;
-import org.prop4j.analyses.impl.general.ConstraintsUnsatisfiableAnaylsis;
+import org.prop4j.analyses.impl.general.ClearCoreDeadAnalysis;
+import org.prop4j.analyses.impl.general.ClearImplicationAnalysis;
+import org.prop4j.analyses.impl.general.ConstraintsUnsatisfiableAnalysis;
 import org.prop4j.analyses.impl.general.CoreDeadAnalysis;
 import org.prop4j.analyses.impl.general.ImplicationAnalysis;
 import org.prop4j.analyses.impl.general.IndeterminedAnalysis;
 import org.prop4j.analyses.impl.general.RedundantConstraintAnalysis;
 import org.prop4j.analyses.impl.general.ValidAnalysis;
+import org.prop4j.analyses.impl.smt.FeatureAttributeRangeAnalysis;
 import org.prop4j.solver.ISatProblem;
 import org.prop4j.solver.ISmtProblem;
 import org.prop4j.solver.ISmtSolver;
@@ -40,9 +43,9 @@ import org.prop4j.solvers.impl.javasmt.smt.JavaSmtSolver;
 import org.sosy_lab.java_smt.SolverContextFactory.Solvers;
 
 /**
- * TODO description
+ * JavaSMT factory used to create analysis with JavaSMT appropriated solvers.
  *
- * @author Joshua
+ * @author Joshua Sprey
  */
 public class JavaSmtSolverAnalysisFactory extends AbstractSolverAnalysisFactory {
 
@@ -64,10 +67,17 @@ public class JavaSmtSolverAnalysisFactory extends AbstractSolverAnalysisFactory 
 			return getIndeterminedAnalysis(problem);
 		} else if (analysisClass.equals(RedundantConstraintAnalysis.class)) {
 			return getRedundantConstraintAnalysis(problem);
-		} else if (analysisClass.equals(ConstraintsUnsatisfiableAnaylsis.class)) {
+		} else if (analysisClass.equals(ConstraintsUnsatisfiableAnalysis.class)) {
 			return getConstraintsUnsatisfiableAnaylsis(problem);
 		} else if (analysisClass.equals(FeatureAttributeRangeAnalysis.class)) {
 			return getFeatureAttributeRangeAnalysis(problem);
+		}
+
+		// Check for AAA analysis
+		if (analysisClass.equals(ClearCoreDeadAnalysis.class)) {
+			return getAAACoreDeadAnalysis(problem);
+		} else if (analysisClass.equals(ClearImplicationAnalysis.class)) {
+			return getAAAImplicationAnalysis(problem);
 		}
 		return null;
 	}
@@ -117,10 +127,10 @@ public class JavaSmtSolverAnalysisFactory extends AbstractSolverAnalysisFactory 
 		}
 	}
 
-	private ConstraintsUnsatisfiableAnaylsis getConstraintsUnsatisfiableAnaylsis(ISolverProblem problem) {
+	private ConstraintsUnsatisfiableAnalysis getConstraintsUnsatisfiableAnaylsis(ISolverProblem problem) {
 		if (problem instanceof ISatProblem) {
 			final ISolver solver = new JavaSmtSatSolver((ISatProblem) problem, Solvers.SMTINTERPOL, defaultConfiguration);
-			return new ConstraintsUnsatisfiableAnaylsis(solver, this);
+			return new ConstraintsUnsatisfiableAnalysis(solver, this);
 		} else {
 			return null;
 		}
@@ -128,11 +138,28 @@ public class JavaSmtSolverAnalysisFactory extends AbstractSolverAnalysisFactory 
 
 	private FeatureAttributeRangeAnalysis getFeatureAttributeRangeAnalysis(ISolverProblem problem) {
 		if (problem instanceof ISmtProblem) {
-			final ISmtSolver solver = new JavaSmtSolver((ISmtProblem) problem, Solvers.SMTINTERPOL, defaultConfiguration);
+			final ISmtSolver solver = new JavaSmtSolver((ISmtProblem) problem, Solvers.Z3, defaultConfiguration);
 			return new FeatureAttributeRangeAnalysis(solver);
 		} else {
 			return null;
 		}
 	}
 
+	private ClearCoreDeadAnalysis getAAACoreDeadAnalysis(ISolverProblem problem) {
+		if (problem instanceof ISatProblem) {
+			final ISolver solver = new JavaSmtSatSolver((ISatProblem) problem, Solvers.SMTINTERPOL, defaultConfiguration);
+			return new ClearCoreDeadAnalysis(solver);
+		} else {
+			return null;
+		}
+	}
+
+	private ClearImplicationAnalysis getAAAImplicationAnalysis(ISolverProblem problem) {
+		if (problem instanceof ISatProblem) {
+			final ISolver solver = new JavaSmtSatSolver((ISatProblem) problem, Solvers.SMTINTERPOL, defaultConfiguration);
+			return new ClearImplicationAnalysis(solver);
+		} else {
+			return null;
+		}
+	}
 }
