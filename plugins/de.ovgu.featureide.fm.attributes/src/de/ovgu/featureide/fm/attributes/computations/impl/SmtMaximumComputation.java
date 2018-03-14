@@ -26,6 +26,7 @@ import de.ovgu.featureide.fm.attributes.base.IFeatureAttribute;
 import de.ovgu.featureide.fm.attributes.base.impl.DoubleFeatureAttribute;
 import de.ovgu.featureide.fm.attributes.base.impl.ExtendedFeature;
 import de.ovgu.featureide.fm.attributes.base.impl.LongFeatureAttribute;
+import de.ovgu.featureide.fm.core.FMCorePlugin;
 import de.ovgu.featureide.fm.core.base.FeatureUtils;
 import de.ovgu.featureide.fm.core.base.IFeature;
 import de.ovgu.featureide.fm.core.configuration.Configuration;
@@ -85,6 +86,7 @@ public class SmtMaximumComputation implements IOutlineEntry {
 	}
 
 	private Object[] getSelectionSum() {
+		long startTime = System.currentTimeMillis();
 		Node formula = buildFormula();
 		List<String> variables = new ArrayList<>();
 		variables.addAll(FeatureUtils.getFeatureNamesPreorder(config.getFeatureModel()));
@@ -98,7 +100,9 @@ public class SmtMaximumComputation implements IOutlineEntry {
 		analysis.setVariable(SUM);
 		analysis.getSolver().setConfiguration(JavaSmtSolver.SOLVER_TYPE, Solvers.Z3);
 		Object result = LongRunningWrapper.runMethod(analysis, new NullMonitor());
-
+		long endTime = System.currentTimeMillis();
+		long duration = endTime - startTime;
+		FMCorePlugin.getDefault().logInfo("Smt Ranges: " + Long.toString(duration));
 		return (Object[]) result;
 
 	}

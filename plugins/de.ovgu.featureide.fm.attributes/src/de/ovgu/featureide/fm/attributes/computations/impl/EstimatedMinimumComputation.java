@@ -9,6 +9,7 @@ import de.ovgu.featureide.fm.attributes.base.IFeatureAttribute;
 import de.ovgu.featureide.fm.attributes.base.impl.DoubleFeatureAttribute;
 import de.ovgu.featureide.fm.attributes.base.impl.ExtendedFeature;
 import de.ovgu.featureide.fm.attributes.base.impl.LongFeatureAttribute;
+import de.ovgu.featureide.fm.core.FMCorePlugin;
 import de.ovgu.featureide.fm.core.base.IFeature;
 import de.ovgu.featureide.fm.core.base.IFeatureStructure;
 import de.ovgu.featureide.fm.core.configuration.Configuration;
@@ -38,8 +39,12 @@ public class EstimatedMinimumComputation implements IOutlineEntry {
 	 * @return Minimum
 	 */
 	private Object getSelectionSum() {
+		long startTime = System.currentTimeMillis();
 		selectedFeatures = config.getSelectedFeatures();
 		unselectedFeatures = config.getUnSelectedFeatures();
+		long endTime = System.currentTimeMillis();
+		long duration = endTime - startTime;
+		FMCorePlugin.getDefault().logInfo("Estimated Min: " + Long.toString(duration));
 		return getSubtreeValue(config.getFeatureModel().getStructure().getRoot().getFeature());
 	}
 
