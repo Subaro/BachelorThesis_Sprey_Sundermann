@@ -32,11 +32,11 @@ import de.ovgu.featureide.fm.core.job.monitor.IMonitor;
  *
  * @author Joshua Sprey
  */
-public class FeatureAttributeRangeAnalysis extends AbstractSmtSolverAnalysis<Object[]> {
+public class FeatureAttributeMinimumAnalysis extends AbstractSmtSolverAnalysis<Object> {
 
 	private Object variable;
 
-	public FeatureAttributeRangeAnalysis(ISmtSolver solver) {
+	public FeatureAttributeMinimumAnalysis(ISmtSolver solver) {
 		super(solver);
 	}
 
@@ -45,19 +45,16 @@ public class FeatureAttributeRangeAnalysis extends AbstractSmtSolverAnalysis<Obj
 	 * @see org.prop4j.analyses.GeneralSolverAnalysis#analyze(de.ovgu.featureide.fm.core.job.monitor.IMonitor)
 	 */
 	@Override
-	public Object[] analyze(IMonitor monitor) {
+	public Object analyze(IMonitor monitor) {
 
 		if ((variable == null) || !(getSolver() instanceof IOptimizationSolver)) {
 			return null;
 		}
 		final IOptimizationSolver solver = (IOptimizationSolver) getSolver();
-		final Object[] result = new Object[2];
 		getSolver().findSolution();
-		result[0] = solver.minimum(variable);
-		result[1] = solver.maximum(variable);
-		if (result[0] instanceof Rational) {
-			result[0] = ((Rational) result[0]).doubleValue();
-			result[1] = ((Rational) result[1]).doubleValue();
+		Object result = solver.minimum(variable);
+		if (result instanceof Rational) {
+			result = ((Rational) result).doubleValue();
 		}
 
 		return result;

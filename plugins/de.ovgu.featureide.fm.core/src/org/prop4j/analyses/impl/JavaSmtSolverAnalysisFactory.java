@@ -32,7 +32,8 @@ import org.prop4j.analyses.impl.general.ImplicationAnalysis;
 import org.prop4j.analyses.impl.general.IndeterminedAnalysis;
 import org.prop4j.analyses.impl.general.RedundantConstraintAnalysis;
 import org.prop4j.analyses.impl.general.ValidAnalysis;
-import org.prop4j.analyses.impl.smt.FeatureAttributeRangeAnalysis;
+import org.prop4j.analyses.impl.smt.FeatureAttributeMaximumAnalysis;
+import org.prop4j.analyses.impl.smt.FeatureAttributeMinimumAnalysis;
 import org.prop4j.solver.ISatProblem;
 import org.prop4j.solver.ISmtProblem;
 import org.prop4j.solver.ISmtSolver;
@@ -69,8 +70,10 @@ public class JavaSmtSolverAnalysisFactory extends AbstractSolverAnalysisFactory 
 			return getRedundantConstraintAnalysis(problem);
 		} else if (analysisClass.equals(ConstraintsUnsatisfiableAnalysis.class)) {
 			return getConstraintsUnsatisfiableAnaylsis(problem);
-		} else if (analysisClass.equals(FeatureAttributeRangeAnalysis.class)) {
+		} else if (analysisClass.equals(FeatureAttributeMinimumAnalysis.class)) {
 			return getFeatureAttributeRangeAnalysis(problem);
+		} else if (analysisClass.equals(FeatureAttributeMaximumAnalysis.class)) {
+			return getFeatureAttributeMaximumAnalysis(problem);
 		}
 
 		// Check for AAA analysis
@@ -136,10 +139,19 @@ public class JavaSmtSolverAnalysisFactory extends AbstractSolverAnalysisFactory 
 		}
 	}
 
-	private FeatureAttributeRangeAnalysis getFeatureAttributeRangeAnalysis(ISolverProblem problem) {
+	private FeatureAttributeMinimumAnalysis getFeatureAttributeRangeAnalysis(ISolverProblem problem) {
 		if (problem instanceof ISmtProblem) {
 			final ISmtSolver solver = new JavaSmtSolver((ISmtProblem) problem, Solvers.Z3, defaultConfiguration);
-			return new FeatureAttributeRangeAnalysis(solver);
+			return new FeatureAttributeMinimumAnalysis(solver);
+		} else {
+			return null;
+		}
+	}
+
+	private FeatureAttributeMaximumAnalysis getFeatureAttributeMaximumAnalysis(ISolverProblem problem) {
+		if (problem instanceof ISmtProblem) {
+			final ISmtSolver solver = new JavaSmtSolver((ISmtProblem) problem, Solvers.Z3, defaultConfiguration);
+			return new FeatureAttributeMaximumAnalysis(solver);
 		} else {
 			return null;
 		}

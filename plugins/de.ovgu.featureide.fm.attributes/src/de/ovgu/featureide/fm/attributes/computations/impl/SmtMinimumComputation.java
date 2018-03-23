@@ -16,7 +16,7 @@ import org.prop4j.Not;
 import org.prop4j.Term;
 import org.prop4j.Variable;
 import org.prop4j.analyses.AbstractSolverAnalysisFactory;
-import org.prop4j.analyses.impl.smt.FeatureAttributeMaximumAnalysis;
+import org.prop4j.analyses.impl.smt.FeatureAttributeMinimumAnalysis;
 import org.prop4j.solver.impl.SmtProblem;
 import org.prop4j.solvers.impl.javasmt.smt.JavaSmtSolver;
 import org.sosy_lab.java_smt.SolverContextFactory.Solvers;
@@ -29,7 +29,7 @@ import de.ovgu.featureide.fm.core.configuration.Configuration;
 import de.ovgu.featureide.fm.core.job.LongRunningWrapper;
 import de.ovgu.featureide.fm.core.job.monitor.NullMonitor;
 
-public class SmtMaximumComputation {
+public class SmtMinimumComputation {
 
 	Configuration config;
 	IFeatureAttribute attribute;
@@ -38,12 +38,12 @@ public class SmtMaximumComputation {
 
 	private static final String SUM = "sum";
 
-	public SmtMaximumComputation(Configuration config, IFeatureAttribute attribute) {
+	public SmtMinimumComputation(Configuration config, IFeatureAttribute attribute) {
 		this.config = config;
 		this.attribute = attribute;
 	}
 
-	public Object getExactMaximum() {
+	public Object getExactMinimum() {
 		Node formula = buildFormula();
 		List<String> variables = new ArrayList<>();
 		variables.addAll(FeatureUtils.getFeatureNamesPreorder(config.getFeatureModel()));
@@ -53,10 +53,11 @@ public class SmtMaximumComputation {
 
 		AbstractSolverAnalysisFactory factory = AbstractSolverAnalysisFactory.getJavaSmtFactory();
 
-		FeatureAttributeMaximumAnalysis analysis = (FeatureAttributeMaximumAnalysis) factory.getAnalysis(FeatureAttributeMaximumAnalysis.class, maximum);
+		FeatureAttributeMinimumAnalysis analysis = (FeatureAttributeMinimumAnalysis) factory.getAnalysis(FeatureAttributeMinimumAnalysis.class, maximum);
 		analysis.setVariable(SUM);
 		analysis.getSolver().setConfiguration(JavaSmtSolver.SOLVER_TYPE, Solvers.Z3);
 		Object result = LongRunningWrapper.runMethod(analysis, new NullMonitor());
+
 		return result;
 	}
 
@@ -119,5 +120,4 @@ public class SmtMaximumComputation {
 		}
 
 	}
-
 }

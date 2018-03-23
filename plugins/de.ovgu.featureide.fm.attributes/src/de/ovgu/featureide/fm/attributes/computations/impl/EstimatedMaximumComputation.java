@@ -3,24 +3,20 @@ package de.ovgu.featureide.fm.attributes.computations.impl;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.swt.graphics.Image;
-
 import de.ovgu.featureide.fm.attributes.base.IFeatureAttribute;
 import de.ovgu.featureide.fm.attributes.base.impl.DoubleFeatureAttribute;
 import de.ovgu.featureide.fm.attributes.base.impl.ExtendedFeature;
 import de.ovgu.featureide.fm.attributes.base.impl.LongFeatureAttribute;
-import de.ovgu.featureide.fm.core.FMCorePlugin;
 import de.ovgu.featureide.fm.core.base.IFeature;
 import de.ovgu.featureide.fm.core.base.IFeatureStructure;
 import de.ovgu.featureide.fm.core.configuration.Configuration;
-import de.ovgu.featureide.fm.ui.views.outline.IOutlineEntry;
 
 /**
  * Estimates maximum of a given numerical attribute
  * 
  * @author Chico Sundermann
  */
-public class EstimatedMaximumComputation implements IOutlineEntry {
+public class EstimatedMaximumComputation {
 
 	private static final String LABEL = "Maximal sum of attribute value (est.): ";
 
@@ -32,39 +28,6 @@ public class EstimatedMaximumComputation implements IOutlineEntry {
 	public EstimatedMaximumComputation(Configuration config, IFeatureAttribute attribute) {
 		this.config = config;
 		this.attribute = attribute;
-	}
-
-	@Override
-	public String getLabel() {
-		if (attribute instanceof LongFeatureAttribute) {
-			return LABEL + String.valueOf(((Double) getSelectionSum()).longValue());
-		}
-		return LABEL + getSelectionSum().toString();
-	}
-
-	@Override
-	public Image getLabelImage() {
-		return null;
-	}
-
-	@Override
-	public boolean hasChildren() {
-		return false;
-	}
-
-	@Override
-	public List<IOutlineEntry> getChildren() {
-		return null;
-	}
-
-	@Override
-	public void setConfig(Configuration config) {
-		this.config = config;
-	}
-
-	@Override
-	public boolean supportsType(Object element) {
-		return attribute instanceof LongFeatureAttribute || attribute instanceof DoubleFeatureAttribute;
 	}
 
 	private double getSubtreeValue(IFeature root) {
@@ -135,13 +98,9 @@ public class EstimatedMaximumComputation implements IOutlineEntry {
 		return value;
 	}
 
-	private Object getSelectionSum() {
-		long startTime = System.currentTimeMillis();
+	public Object getSelectionSum() {
 		selectedFeatures = config.getSelectedFeatures();
 		unselectedFeatures = config.getUnSelectedFeatures();
-		long endTime = System.currentTimeMillis();
-		long duration = endTime - startTime;
-		FMCorePlugin.getDefault().logInfo("Estimated Max: " + Long.toString(duration));
 		return getSubtreeValue(config.getFeatureModel().getStructure().getRoot().getFeature());
 	}
 

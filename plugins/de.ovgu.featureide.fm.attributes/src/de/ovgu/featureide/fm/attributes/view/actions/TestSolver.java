@@ -20,7 +20,7 @@ import org.prop4j.Not;
 import org.prop4j.Or;
 import org.prop4j.Variable;
 import org.prop4j.analyses.AbstractSolverAnalysisFactory;
-import org.prop4j.analyses.impl.smt.FeatureAttributeRangeAnalysis;
+import org.prop4j.analyses.impl.smt.FeatureAttributeMinimumAnalysis;
 import org.prop4j.solver.ISatProblem;
 import org.prop4j.solver.impl.SatProblem;
 import org.prop4j.solver.impl.SmtProblem;
@@ -128,7 +128,7 @@ public class TestSolver extends Action {
 
 		AbstractSolverAnalysisFactory factory = AbstractSolverAnalysisFactory.getJavaSmtFactory();
 
-		FeatureAttributeRangeAnalysis analysis = (FeatureAttributeRangeAnalysis) factory.getAnalysis(FeatureAttributeRangeAnalysis.class, dummy);
+		FeatureAttributeMinimumAnalysis analysis = (FeatureAttributeMinimumAnalysis) factory.getAnalysis(FeatureAttributeMinimumAnalysis.class, dummy);
 		analysis.setVariable("sum");
 		analysis.getSolver().setConfiguration(JavaSmtSolver.SOLVER_TYPE, Solvers.Z3);
 		Object result = LongRunningWrapper.runMethod(analysis, new NullMonitor());

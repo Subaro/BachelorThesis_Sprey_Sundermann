@@ -109,4 +109,14 @@ public class ConfigurationOutlineStandardBundle implements IOutlineEntry {
 
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see de.ovgu.featureide.fm.ui.views.outline.IOutlineEntry#handleDoubleClick()
+	 */
+	@Override
+	public void handleDoubleClick() {
+		// TODO Auto-generated method stub
+
+	}
+
 }
