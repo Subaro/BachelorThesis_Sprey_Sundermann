@@ -106,7 +106,6 @@ public class ConfigurationOutlineProvider extends OutlineProvider {
 	 */
 	@Override
 	protected void initToolbarActions(IToolBarManager manager) {
-		// TODO Auto-generated method stub
 
 	}
 

@@ -3,7 +3,6 @@ package de.ovgu.featureide.fm.attributes.computations.impl;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.swt.graphics.Image;
 import org.prop4j.And;
 import org.prop4j.Constant;
 import org.prop4j.DoubleType;
@@ -17,74 +16,34 @@ import org.prop4j.Not;
 import org.prop4j.Term;
 import org.prop4j.Variable;
 import org.prop4j.analyses.AbstractSolverAnalysisFactory;
-import org.prop4j.analyses.impl.smt.FeatureAttributeRangeAnalysis;
+import org.prop4j.analyses.impl.smt.SmtAnalysisEvaluation;
 import org.prop4j.solver.impl.SmtProblem;
 import org.prop4j.solvers.impl.javasmt.smt.JavaSmtSolver;
 import org.sosy_lab.java_smt.SolverContextFactory.Solvers;
 
 import de.ovgu.featureide.fm.attributes.base.IFeatureAttribute;
-import de.ovgu.featureide.fm.attributes.base.impl.DoubleFeatureAttribute;
 import de.ovgu.featureide.fm.attributes.base.impl.ExtendedFeature;
-import de.ovgu.featureide.fm.attributes.base.impl.LongFeatureAttribute;
 import de.ovgu.featureide.fm.core.base.FeatureUtils;
 import de.ovgu.featureide.fm.core.base.IFeature;
 import de.ovgu.featureide.fm.core.configuration.Configuration;
 import de.ovgu.featureide.fm.core.job.LongRunningWrapper;
 import de.ovgu.featureide.fm.core.job.monitor.NullMonitor;
-import de.ovgu.featureide.fm.ui.views.outline.IOutlineEntry;
 
-public class SmtMaximumComputation implements IOutlineEntry {
+public class SmtEvaluation {
 
 	Configuration config;
 	IFeatureAttribute attribute;
 	List<String> attIdentifiers = new ArrayList<>();
 	List<Term> attVariables = new ArrayList<>();
-
-	private static final String LABEL = "Range of the value (exact): ";
 	private static final String SUM = "sum";
 
-	public SmtMaximumComputation(Configuration config, IFeatureAttribute attribute) {
+	public SmtEvaluation(Configuration config, IFeatureAttribute attribute) {
 		this.config = config;
 		this.attribute = attribute;
 	}
 
-	@Override
-	public String getLabel() {
-		Object[] result = getSelectionSum();
-		if (attribute instanceof LongFeatureAttribute) {
-			result[0] = ((Double) result[0]).longValue();
-			result[1] = ((Double) result[1]).longValue();
-		}
-		return LABEL + result[0].toString() + "-" + result[1].toString();
-	}
-
-	@Override
-	public Image getLabelImage() {
-		return null;
-	}
-
-	@Override
-	public boolean hasChildren() {
-		return false;
-	}
-
-	@Override
-	public List<IOutlineEntry> getChildren() {
-		return null;
-	}
-
-	@Override
-	public boolean supportsType(Object element) {
-		return attribute instanceof LongFeatureAttribute || attribute instanceof DoubleFeatureAttribute;
-	}
-
-	@Override
-	public void setConfig(Configuration config) {
-		this.config = config;
-
-	}
-
 	public Object[] getSelectionSum() {
+		Long startingTime = System.currentTimeMillis();
 		Node formula = buildFormula();
 		List<String> variables = new ArrayList<>();
 		variables.addAll(FeatureUtils.getFeatureNamesPreorder(config.getFeatureModel()));
@@ -94,10 +53,11 @@ public class SmtMaximumComputation implements IOutlineEntry {
 
 		AbstractSolverAnalysisFactory factory = AbstractSolverAnalysisFactory.getJavaSmtFactory();
 
-		FeatureAttributeRangeAnalysis analysis = (FeatureAttributeRangeAnalysis) factory.getAnalysis(FeatureAttributeRangeAnalysis.class, maximum);
+		SmtAnalysisEvaluation analysis = (SmtAnalysisEvaluation) factory.getAnalysis(SmtAnalysisEvaluation.class, maximum);
 		analysis.setVariable(SUM);
 		analysis.getSolver().setConfiguration(JavaSmtSolver.SOLVER_TYPE, Solvers.Z3);
-		Object result = LongRunningWrapper.runMethod(analysis, new NullMonitor());
+		Object[] result = LongRunningWrapper.runMethod(analysis, new NullMonitor());
+		result[4] = (long) result[4] - startingTime;
 		return (Object[]) result;
 
 	}

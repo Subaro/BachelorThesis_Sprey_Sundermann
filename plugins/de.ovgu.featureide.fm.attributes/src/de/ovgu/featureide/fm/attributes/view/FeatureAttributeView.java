@@ -64,6 +64,8 @@ import de.ovgu.featureide.fm.attributes.base.IFeatureAttribute;
 import de.ovgu.featureide.fm.attributes.base.impl.ExtendedFeature;
 import de.ovgu.featureide.fm.attributes.base.impl.ExtendedFeatureModel;
 import de.ovgu.featureide.fm.attributes.base.impl.FeatureAttribute;
+import de.ovgu.featureide.fm.attributes.evaluation.EvaluateAction;
+import de.ovgu.featureide.fm.attributes.evaluation.RandomSelect;
 import de.ovgu.featureide.fm.attributes.view.actions.AddFeatureAttributeAction;
 import de.ovgu.featureide.fm.attributes.view.actions.CollapseAllButFirstLevel;
 import de.ovgu.featureide.fm.attributes.view.actions.ExpandTreeViewer;
@@ -364,6 +366,8 @@ public class FeatureAttributeView extends ViewPart implements IEventListener {
 		toolBar.add(new CollapseAllButFirstLevel(treeViewer, ImageDescriptor.createFromImage(cachedImages.get(collapseAll))));
 		toolBar.add(new SynchFeatureAttributesToFeatureDiagramAction(this, treeViewer, ImageDescriptor.createFromImage(cachedImages.get(synch_tree))));
 		// toolBar.add(new TestSolver(this, ImageDescriptor.createFromImage(cachedImages.get(imgFeature))));
+		toolBar.add(new EvaluateAction(this));
+		toolBar.add(new RandomSelect(this));
 
 		menuManager = new MenuManager();
 		menuManager.setRemoveAllWhenShown(true);
@@ -538,6 +542,7 @@ public class FeatureAttributeView extends ViewPart implements IEventListener {
 					setFeatureModel(null);
 					if (!treeViewer.getControl().isDisposed()) {
 						treeViewer.setInput(editor.getConfiguration());
+
 					}
 					treeViewer.expandAll();
 					repackAllColumns();

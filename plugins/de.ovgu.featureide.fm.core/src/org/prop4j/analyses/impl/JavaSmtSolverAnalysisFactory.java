@@ -33,6 +33,7 @@ import org.prop4j.analyses.impl.general.IndeterminedAnalysis;
 import org.prop4j.analyses.impl.general.RedundantConstraintAnalysis;
 import org.prop4j.analyses.impl.general.ValidAnalysis;
 import org.prop4j.analyses.impl.smt.FeatureAttributeRangeAnalysis;
+import org.prop4j.analyses.impl.smt.SmtAnalysisEvaluation;
 import org.prop4j.solver.ISatProblem;
 import org.prop4j.solver.ISmtProblem;
 import org.prop4j.solver.ISmtSolver;
@@ -71,6 +72,8 @@ public class JavaSmtSolverAnalysisFactory extends AbstractSolverAnalysisFactory 
 			return getConstraintsUnsatisfiableAnaylsis(problem);
 		} else if (analysisClass.equals(FeatureAttributeRangeAnalysis.class)) {
 			return getFeatureAttributeRangeAnalysis(problem);
+		} else if (analysisClass.equals(SmtAnalysisEvaluation.class)) {
+			return getSmtAnalysisEvaluation(problem);
 		}
 
 		// Check for AAA analysis
@@ -140,6 +143,15 @@ public class JavaSmtSolverAnalysisFactory extends AbstractSolverAnalysisFactory 
 		if (problem instanceof ISmtProblem) {
 			final ISmtSolver solver = new JavaSmtSolver((ISmtProblem) problem, Solvers.Z3, defaultConfiguration);
 			return new FeatureAttributeRangeAnalysis(solver);
+		} else {
+			return null;
+		}
+	}
+
+	private SmtAnalysisEvaluation getSmtAnalysisEvaluation(ISolverProblem problem) {
+		if (problem instanceof ISmtProblem) {
+			final ISmtSolver solver = new JavaSmtSolver((ISmtProblem) problem, Solvers.Z3, defaultConfiguration);
+			return new SmtAnalysisEvaluation(solver);
 		} else {
 			return null;
 		}
