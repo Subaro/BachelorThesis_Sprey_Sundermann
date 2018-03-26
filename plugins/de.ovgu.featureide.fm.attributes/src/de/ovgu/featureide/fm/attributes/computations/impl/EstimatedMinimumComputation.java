@@ -33,13 +33,13 @@ public class EstimatedMinimumComputation {
 	 * 
 	 * @return Minimum
 	 */
-	public Object getSelectionSum() {
+	public Object getEstimatedMinimum() {
 		selectedFeatures = config.getSelectedFeatures();
 		unselectedFeatures = config.getUnSelectedFeatures();
-		return getSubtreeValue(config.getFeatureModel().getStructure().getRoot().getFeature());
+		return getSubtreeMinimum(config.getFeatureModel().getStructure().getRoot().getFeature());
 	}
 
-	private double getSubtreeValue(IFeature root) {
+	private double getSubtreeMinimum(IFeature root) {
 		double value = 0;
 		ExtendedFeature ext = (ExtendedFeature) root;
 		for (IFeatureAttribute att : ext.getAttributes()) {
@@ -61,9 +61,9 @@ public class EstimatedMinimumComputation {
 		} else {
 			if (root.getStructure().isAnd()) {
 				for (IFeatureStructure struc : root.getStructure().getChildren()) {
-					double tempValue = getSubtreeValue(struc.getFeature());
+					double tempValue = getSubtreeMinimum(struc.getFeature());
 					if (struc.isMandatory() || isSelected(struc.getFeature()) || (tempValue < 0 && !isUnselected(struc.getFeature()))) {
-						value += getSubtreeValue(struc.getFeature());
+						value += getSubtreeMinimum(struc.getFeature());
 					}
 				}
 
@@ -71,10 +71,10 @@ public class EstimatedMinimumComputation {
 				List<Double> values = new ArrayList<>();
 				for (IFeatureStructure struc : root.getStructure().getChildren()) {
 					if (isSelected(struc.getFeature())) {
-						return value + getSubtreeValue(struc.getFeature());
+						return value + getSubtreeMinimum(struc.getFeature());
 					}
 					if (!isUnselected(struc.getFeature())) {
-						values.add(getSubtreeValue(struc.getFeature()));
+						values.add(getSubtreeMinimum(struc.getFeature()));
 					}
 				}
 				return value + getMinValue(values);
@@ -85,7 +85,7 @@ public class EstimatedMinimumComputation {
 					if (isUnselected(struc.getFeature())) {
 						unselectedCount++;
 					} else {
-						double tempValue = getSubtreeValue(struc.getFeature());
+						double tempValue = getSubtreeMinimum(struc.getFeature());
 						if (isSelected(struc.getFeature()) || tempValue < 0) {
 							value += tempValue;
 						} else {

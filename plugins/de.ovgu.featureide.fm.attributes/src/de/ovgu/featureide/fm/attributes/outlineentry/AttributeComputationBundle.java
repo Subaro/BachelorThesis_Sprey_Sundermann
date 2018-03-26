@@ -25,7 +25,7 @@ public class AttributeComputationBundle implements IOutlineEntry {
 	@Override
 	public String getLabel() {
 		// TODO Auto-generated method stub
-		return "Attribute calculations";
+		return "Attribute statistics";
 	}
 
 	@Override

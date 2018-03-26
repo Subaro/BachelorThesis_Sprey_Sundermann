@@ -30,7 +30,7 @@ public class EstimatedMaximumComputation {
 		this.attribute = attribute;
 	}
 
-	private double getSubtreeValue(IFeature root) {
+	private double getSubtreeMaximum(IFeature root) {
 		double value = 0;
 		ExtendedFeature ext = (ExtendedFeature) root;
 		for (IFeatureAttribute att : ext.getAttributes()) {
@@ -56,11 +56,11 @@ public class EstimatedMaximumComputation {
 					if (isUnselected(struc.getFeature())) {
 						unselectedCount++;
 					} else {
-						double tempValue = getSubtreeValue(struc.getFeature());
+						double tempValue = getSubtreeMaximum(struc.getFeature());
 						if (tempValue >= 0 || isSelected(struc.getFeature())) {
 							value += tempValue;
 						} else {
-							negativeValues.add(getSubtreeValue(struc.getFeature()));
+							negativeValues.add(getSubtreeMaximum(struc.getFeature()));
 						}
 					}
 				}
@@ -76,7 +76,7 @@ public class EstimatedMaximumComputation {
 			} else if (root.getStructure().isAnd()) {
 				for (IFeatureStructure struct : root.getStructure().getChildren()) {
 					if (!isUnselected(struct.getFeature())) {
-						double tempValue = getSubtreeValue(struct.getFeature());
+						double tempValue = getSubtreeMaximum(struct.getFeature());
 						if (struct.isMandatory() || tempValue >= 0 || isSelected(struct.getFeature())) {
 							value += tempValue;
 						}
@@ -87,9 +87,9 @@ public class EstimatedMaximumComputation {
 				for (IFeatureStructure struc : root.getStructure().getChildren()) {
 					if (!isUnselected(struc.getFeature())) {
 						if (isSelected(struc.getFeature())) {
-							return value + getSubtreeValue(struc.getFeature());
+							return value + getSubtreeMaximum(struc.getFeature());
 						}
-						values.add(getSubtreeValue(struc.getFeature()));
+						values.add(getSubtreeMaximum(struc.getFeature()));
 					}
 				}
 				return value + getMaxValue(values);
@@ -98,10 +98,10 @@ public class EstimatedMaximumComputation {
 		return value;
 	}
 
-	public Object getSelectionSum() {
+	public Object getEstimatedMaximum() {
 		selectedFeatures = config.getSelectedFeatures();
 		unselectedFeatures = config.getUnSelectedFeatures();
-		return getSubtreeValue(config.getFeatureModel().getStructure().getRoot().getFeature());
+		return getSubtreeMaximum(config.getFeatureModel().getStructure().getRoot().getFeature());
 	}
 
 	private boolean isSelected(IFeature feature) {

@@ -40,7 +40,7 @@ import de.ovgu.featureide.fm.ui.views.outline.computations.impl.UnselectedFeatur
  */
 public class ConfigurationOutlineStandardBundle implements IOutlineEntry {
 
-	private static final String LABEL = "Configuration properties";
+	private static final String LABEL = "Configuration statistics";
 
 	private Configuration config;
 
